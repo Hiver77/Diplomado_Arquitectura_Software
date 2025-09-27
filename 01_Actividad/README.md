@@ -27,7 +27,7 @@ Para este escenario se elige el patrón Builder que pertenece a la familia de pa
 4. **Separación construcción/representación:** reglas y validaciones en el builder; el producto es simple.
 
 ## Diagrama de clase
-![Diagrama car](01_Actividad/00_Diagramas_De_Clase/diagrama_builder_car.jpg)
+![Diagrama car](/01_Actividad/00_Diagramas_De_Clase/diagrama_builder_car.jpg)
 
 
 ## Lenguaje
