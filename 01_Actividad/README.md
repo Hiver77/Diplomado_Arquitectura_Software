@@ -26,9 +26,16 @@ Para este escenario se elige el patrón Builder que pertenece a la familia de pa
 3. **Flexibilidad:** omitir atributos opcionales con *defaults* en el builder.
 4. **Separación construcción/representación:** reglas y validaciones en el builder; el producto es simple.
 
+## Diagrama de clase
+![Diagrama car](01_Actividad/00_Diagramas_De_Clase/diagrama_builder_car.jpg)
+
 
 ## Lenguaje
 - Lenguaje: Python 3.10+ (biblioteca estándar).  
+
+
+
+
 
 # Escenario 2
 
