@@ -35,8 +35,6 @@ Para este escenario se elige el patrón Builder que pertenece a la familia de pa
 
 
 
-
-
 # Escenario 2
 
 Para este escenario se elige el patrón Bridge que pertenece a la familia de patrones Estructúrales, este tipo de patrón se enfoca en separar la plataforma (Abstracción) del tipo de mensaje que se quiere enviar, este patrón nos permite incluir otro tipo de notificaciones y plataforma sin modificar las clases existentes. 
@@ -51,6 +49,9 @@ Para este escenario se elige el patrón Bridge que pertenece a la familia de pat
 2. **Escalabilidad:** Puedes añadir nuevas plataformas o nuevos tipos de notificación sin tocar el otro eje.
 3. **Reducción de clases:** Evita la explosión de crear un tipo de mensaje por cada plataforma pasando a crear clases de manera jerárquica. 
 4: **Flexibilidad en tiempo de ejecución:** La plataforma es intercambiable; puedes cambiar el canal en tiempo de ejecución (Web → Móvil → Desktop) sin reinstanciar ni duplicar lógica.
+
+## Diagrama de clase
+![Diagrama notification](/01_Actividad/00_Diagramas_De_Clase/diagrama_notification_bridge.jpg)
 
 
 ## Lenguaje
@@ -70,6 +71,9 @@ Para este escenario se elige el patrón Mediador que pertenece a la familia de p
 2. **Mejor organización:** La lógica de coordinación, validaciones y políticas se centralizan en el mediador.  
 3. **Reduce la complejidad:** El mediador evita la red de referencias punto a punto entre todos los componentes, ayudando a la mantenibildad y escalabilidad. 
 
+
+## Diagrama de clase
+![Diagrama chat](/01_Actividad/00_Diagramas_De_Clase/chat_mediator.jpg)
 
 ## Lenguaje
 - Lenguaje: Python 3.10+ (biblioteca estándar).
