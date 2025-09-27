@@ -1,6 +1,15 @@
 
 # Actividad 1
 
+# Integrantes 
+
+* Leidy Marcela Ducuara Lenis
+* Iver Johan Hincapie Betancur 
+* Juan Diego Rojas Peña 
+* Eliana Carolina Herrán Logreira. 
+
+
+
 # Escenario 1
 
 Para este escenario se elige el patrón Builder que pertenece a la familia de patrones Creacionales, este tipo de patrón se enfoca en la forma en que los objetos son creados. En este caso, el Builder permite construir un objeto Automóvil con múltiples configuraciones opcionales paso a paso, resuelve la situación del constructor telescópico, es decir se usa un solo constructor para todas las configuraciones, y por último separa el proceso de construcción de la representación del objeto final. Para el ejercicio si bien se supone que el cliente puede personalizar elegimos tener adicional la clase Director por si el cliente prefiere escoger automóviles con configuración predefinida.
@@ -23,7 +32,7 @@ Para este escenario se elige el patrón Builder que pertenece a la familia de pa
 
 # Escenario 2
 
-Para este escenario se elige el patrón Bridge que pertenece a la familia de patrones Estructúrales, este tipo de patrón se enfoca en separar la plataforma (Abstracción) del tipo de mensaje que se quiere enviar.
+Para este escenario se elige el patrón Bridge que pertenece a la familia de patrones Estructúrales, este tipo de patrón se enfoca en separar la plataforma (Abstracción) del tipo de mensaje que se quiere enviar, este patrón nos permite incluir otro tipo de notificaciones y plataforma sin modificar las clases existentes. 
 
 ## Resumen
 - **Tipo de patrón:** Estructural   
@@ -42,7 +51,7 @@ Para este escenario se elige el patrón Bridge que pertenece a la familia de pat
 
 # Escenario 3
 
-Para este escenario se elige el patrón Mediador que pertenece a la familia de patrones de Comportamiento, este tipo de patrón restringe las comunicaciones directas entre los objetos, forzándolos a colaborar únicamente a través de un objeto mediador.
+Para este escenario se elige el patrón Mediador que pertenece a la familia de patrones de Comportamiento, este tipo de patrón restringe las comunicaciones directas entre los objetos, forzándolos a colaborar únicamente a través de un objeto mediador. En nuestro caso al crear un objeto central como ChatRoom simplificamos las comunicaciones y evitamos las dependencias enlazadas entre los usuarios. 
 
 ## Resumen
 - **Tipo de patrón:** De Comportamiento   
@@ -50,6 +59,10 @@ Para este escenario se elige el patrón Mediador que pertenece a la familia de p
 
 **Beneficios logrados:**
 
-1. **Facilita el mantenimiento:** 
-2. **Mejor organización:** 
-3. **Reduce la complejidad:** 
+1. **Facilita el mantenimiento:** Cada participante solo conoce al mediador (ChatRoom) no al resto. Un usuario puede entrar o salir sin modificar a los demás. 
+2. **Mejor organización:** La lógica de coordinación, validaciones y políticas se centralizan en el mediador.  
+3. **Reduce la complejidad:** El mediador evita la red de referencias punto a punto entre todos los componentes, ayudando a la mantenibildad y escalabilidad. 
+
+
+## Lenguaje
+- Lenguaje: Python 3.10+ (biblioteca estándar).
