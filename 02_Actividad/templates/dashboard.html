@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard CQRS - Productos en Tiempo Real v3.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js?v=3.0"></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 250px;
+        }
+
+        .chart-container canvas {
+            max-height: 200px !important;
+        }
+
+        .products-table {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+        }
+
+        .table-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        th {
+            background: #ecf0f1;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-online {
+            background: #27ae60;
+        }
+
+        .status-offline {
+            background: #e74c3c;
+        }
+
+        .refresh-info {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard CQRS - Productos en Tiempo Real</h1>
+            <p>Monitoreo de productos con arquitectura CQRS</p>
+            <div class="status-indicator status-online"></div>
+            <span id="status">Conectado</span>
+            <span id="last-update"></span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="total-products">0</div>
+                <div class="stat-label">Total Productos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-price">$0</div>
+                <div class="stat-label">Precio Promedio</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-stock">0</div>
+                <div class="stat-label">Stock Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="products-in-stock">0</div>
+                <div class="stat-label">Con Stock</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>Stock Total por Producto</h3>
+                <canvas id="stockBarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="products-table">
+            <div class="table-header">
+                📦 Productos Recientes
+            </div>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Creado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="refresh-info">
+            <p>🔄 Los datos se actualizan automáticamente cada 10 segundos</p>
+        </div>
+    </div>
+
+    <script>
+        let stockBarChart;
+
+        // Inicializar gráficos
+        function initCharts() {
+            const stockBarCtx = document.getElementById('stockBarChart').getContext('2d');
+            stockBarChart = new Chart(stockBarCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Stock',
+                        data: [],
+                        backgroundColor: '#3498db',
+                        borderColor: '#2980b9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Actualizar datos del dashboard
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/dashboard?t=' + Date.now());
+                const data = await response.json();
+
+                // Actualizar estadísticas
+                document.getElementById('total-products').textContent = data.stats.total_products || 0;
+                document.getElementById('avg-price').textContent = `$${(data.stats.avg_price || 0).toFixed(2)}`;
+                document.getElementById('total-stock').textContent = data.stats.total_stock || 0;
+                document.getElementById('products-in-stock').textContent = data.stats.products_in_stock || 0;
+
+                // Actualizar gráfico de barras de stock
+                if (stockBarChart && data.stock_data) {
+                    stockBarChart.data.labels = data.stock_data.map(item => item.name);
+                    stockBarChart.data.datasets[0].data = data.stock_data.map(item => item.stock);
+                    stockBarChart.update();
+                }
+
+                // Actualizar tabla de productos
+                const tbody = document.getElementById('products-table-body');
+                tbody.innerHTML = '';
+
+                if (data.products) {
+                    data.products.forEach(product => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${product.id}</td>
+                            <td>${product.name}</td>
+                            <td>$${product.price.toFixed(2)}</td>
+                            <td>${product.stock}</td>
+                            <td>${new Date(product.created_at).toLocaleString()}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+
+                // Actualizar información de última actualización
+                if (data.last_update) {
+                    document.getElementById('last-update').textContent =
+                        `Última actualización: ${new Date(data.last_update).toLocaleString()}`;
+                }
+
+            } catch (error) {
+                console.error('Error updating dashboard:', error);
+                document.getElementById('status').textContent = 'Error de conexión';
+                document.querySelector('.status-indicator').className = 'status-indicator status-offline';
+            }
+        }
+
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function () {
+            initCharts();
+            updateDashboard();
+
+            // Actualizar cada 10 segundos para mejor rendimiento
+            setInterval(updateDashboard, 10000);
+        });
+    </script>
+</body>
+
+</html>

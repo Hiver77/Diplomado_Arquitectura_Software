@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # Base de datos para escritura (PostgreSQL)
+  postgres_write:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: products_write
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d products_write" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Base de datos para lectura (PostgreSQL Read)
+  postgres_read:
+    build:
+      context: .
+      dockerfile: Dockerfile.read_db
+    environment:
+      POSTGRES_DB: products_read
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_read_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d products_read" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Message Broker (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Servicio de Comandos (Escritura)
+  command_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.command
+    ports:
+      - "5005:5000"
+    environment:
+      POSTGRES_HOST: postgres_write
+      POSTGRES_DB: products_write
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      postgres_write:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # Servicio de Consultas (Lectura)
+  query_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.query
+    ports:
+      - "5006:5001"
+    environment:
+      POSTGRES_READ_HOST: postgres_read
+      POSTGRES_READ_DB: products_read
+      POSTGRES_READ_USER: admin
+      POSTGRES_READ_PASSWORD: admin123
+    depends_on:
+      postgres_read:
+        condition: service_healthy
+
+  # Manejador de Eventos (Sincronización)
+  event_handler:
+    build:
+      context: .
+      dockerfile: Dockerfile.handler
+    environment:
+      POSTGRES_READ_HOST: postgres_read
+      POSTGRES_READ_DB: products_read
+      POSTGRES_READ_USER: admin
+      POSTGRES_READ_PASSWORD: admin123
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres_read:
+        condition: service_healthy
+
+  # Servidor de Dashboard (Gráficos en Tiempo Real)
+  dashboard_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "5007:5004"
+    environment:
+      POSTGRES_READ_HOST: postgres_read
+      POSTGRES_READ_DB: products_read
+      POSTGRES_READ_USER: admin
+      POSTGRES_READ_PASSWORD: admin123
+    depends_on:
+      postgres_read:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  postgres_read_data:
